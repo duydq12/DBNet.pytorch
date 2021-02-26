@@ -75,6 +75,8 @@ class SegDetectorRepresenter():
                 box = self.unclip(points, unclip_ratio=self.unclip_ratio)
                 if len(box) > 1:
                     continue
+                if box.size == 0:
+                    continue
             else:
                 continue
             box = box.reshape(-1, 2)

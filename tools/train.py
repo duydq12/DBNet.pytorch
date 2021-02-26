@@ -12,8 +12,10 @@ import anyconfig
 
 def init_args():
     parser = argparse.ArgumentParser(description='DBNet.pytorch')
-    parser.add_argument('--config_file', default='config/open_dataset_resnet18_FPN_DBhead_polyLR.yaml', type=str)
-    parser.add_argument('--local_rank', dest='local_rank', default=0, type=int, help='Use distributed training')
+    parser.add_argument('--config_file',
+                        default='config/open_dataset_resnet18_FPN_DBhead_polyLR.yaml', type=str)
+    parser.add_argument('--local_rank', dest='local_rank', default=0, type=int,
+                        help='Use distributed training')
 
     args = parser.parse_args()
     return args
@@ -28,7 +30,9 @@ def main(config):
     from utils import get_metric
     if torch.cuda.device_count() > 1:
         torch.cuda.set_device(args.local_rank)
-        torch.distributed.init_process_group(backend="nccl", init_method="env://", world_size=torch.cuda.device_count(), rank=args.local_rank)
+        torch.distributed.init_process_group(backend="nccl", init_method="env://",
+                                             world_size=torch.cuda.device_count(),
+                                             rank=args.local_rank)
         config['distributed'] = True
     else:
         config['distributed'] = False
@@ -43,7 +47,8 @@ def main(config):
 
     criterion = build_loss(config['loss']).cuda()
 
-    config['arch']['backbone']['in_channels'] = 3 if config['dataset']['train']['dataset']['args']['img_mode'] != 'GRAY' else 1
+    config['arch']['backbone']['in_channels'] = 3 if config['dataset']['train']['dataset']['args'][
+                                                         'img_mode'] != 'GRAY' else 1
     model = build_model(config['arch'])
 
     post_p = get_post_processing(config['post_processing'])

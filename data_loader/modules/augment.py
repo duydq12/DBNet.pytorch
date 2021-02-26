@@ -70,7 +70,8 @@ class RandomRotateImgBox:
             if degrees < 0:
                 raise ValueError("If degrees is a single number, it must be positive.")
             degrees = (-degrees, degrees)
-        elif isinstance(degrees, list) or isinstance(degrees, tuple) or isinstance(degrees, np.ndarray):
+        elif isinstance(degrees, list) or isinstance(degrees, tuple) or isinstance(degrees,
+                                                                                   np.ndarray):
             if len(degrees) != 2:
                 raise ValueError("If degrees is a sequence, it must be of len 2.")
             degrees = degrees
@@ -113,7 +114,8 @@ class RandomRotateImgBox:
         rot_mat[0, 2] += rot_move[0]
         rot_mat[1, 2] += rot_move[1]
         # 仿射变换
-        rot_img = cv2.warpAffine(im, rot_mat, (int(math.ceil(nw)), int(math.ceil(nh))), flags=cv2.INTER_LANCZOS4)
+        rot_img = cv2.warpAffine(im, rot_mat, (int(math.ceil(nw)), int(math.ceil(nh))),
+                                 flags=cv2.INTER_LANCZOS4)
 
         # ---------------------- 矫正bbox坐标 ----------------------
         # rot_mat是最终的旋转矩阵
@@ -216,20 +218,30 @@ class ResizeShortSize:
         im = data['img']
         text_polys = data['text_polys']
 
-        h, w, _ = im.shape
-        short_edge = min(h, w)
-        if short_edge < self.short_size:
-            # 保证短边 >= short_size
-            scale = self.short_size / short_edge
-            im = cv2.resize(im, dsize=None, fx=scale, fy=scale)
-            scale = (scale, scale)
-            # im, scale = resize_image(im, self.short_size)
-            if self.resize_text_polys:
-                # text_polys *= scale
-                text_polys[:, 0] *= scale[0]
-                text_polys[:, 1] *= scale[1]
-
-        data['img'] = im
+        h, w, c = im.shape
+        # short_edge = min(h, w)
+        # if short_edge < self.short_size:
+        #     # 保证短边 >= short_size
+        #     scale = self.short_size / short_edge
+        #     im = cv2.resize(im, dsize=None, fx=scale, fy=scale)
+        #     scale = (scale, scale)
+        #     # im, scale = resize_image(im, self.short_size)
+        #     if self.resize_text_polys:
+        #         # text_polys *= scale
+        #         text_polys[:, 0] *= scale[0]
+        #         text_polys[:, 1] *= scale[1]
+        scale_w = self.short_size / w
+        scale_h = self.short_size / h
+        scale = min(scale_w, scale_h)
+        h = int(h * scale)
+        w = int(w * scale)
+        padimg = np.zeros((self.short_size, self.short_size, c), im.dtype)
+        padimg[:h, :w] = cv2.resize(im, (w, h))
+        if self.resize_text_polys:
+            # text_polys *= scale
+            text_polys[:, 0] *= scale[0]
+            text_polys[:, 1] *= scale[1]
+        data['img'] = padimg
         data['text_polys'] = text_polys
         return data
 

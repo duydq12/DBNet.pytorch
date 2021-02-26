@@ -3,8 +3,9 @@
 # @Author  : zhoujun
 
 import os
-import sys
 import pathlib
+import sys
+
 __dir__ = pathlib.Path(os.path.abspath(__file__))
 sys.path.append(str(__dir__))
 sys.path.append(str(__dir__.parent.parent))
@@ -92,7 +93,8 @@ class Pytorch_model:
             preds = self.model(tensor)
             if str(self.device).__contains__('cuda'):
                 torch.cuda.synchronize(self.device)
-            box_list, score_list = self.post_process(batch, preds, is_output_polygon=is_output_polygon)
+            box_list, score_list = self.post_process(batch, preds,
+                                                     is_output_polygon=is_output_polygon)
             box_list, score_list = box_list[0], score_list[0]
             if len(box_list) > 0:
                 if is_output_polygon:
@@ -117,9 +119,11 @@ def init_args():
     import argparse
     parser = argparse.ArgumentParser(description='DBNet.pytorch')
     parser.add_argument('--model_path', default=r'model_best.pth', type=str)
-    parser.add_argument('--input_folder', default='./test/input', type=str, help='img path for predict')
-    parser.add_argument('--output_folder', default='./test/output', type=str, help='img path for output')
-    parser.add_argument('--thre', default=0.3,type=float, help='the thresh of post_processing')
+    parser.add_argument('--input_folder', default='./test/input', type=str,
+                        help='img path for predict')
+    parser.add_argument('--output_folder', default='./test/output', type=str,
+                        help='img path for output')
+    parser.add_argument('--thre', default=0.3, type=float, help='the thresh of post_processing')
     parser.add_argument('--polygon', action='store_true', help='output polygon or box')
     parser.add_argument('--show', action='store_true', help='show result')
     parser.add_argument('--save_resut', action='store_true', help='save box and score to txt file')
@@ -153,4 +157,5 @@ if __name__ == '__main__':
         pred_path = os.path.join(args.output_folder, img_path.stem + '_pred.jpg')
         cv2.imwrite(output_path, img[:, :, ::-1])
         cv2.imwrite(pred_path, preds * 255)
-        save_result(output_path.replace('_result.jpg', '.txt'), boxes_list, score_list, args.polygon)
+        save_result(output_path.replace('_result.jpg', '.txt'), boxes_list, score_list,
+                    args.polygon)

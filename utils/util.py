@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2019/8/23 21:59
 # @Author  : zhoujun
+import glob
 import json
+import os
 import pathlib
 import time
-import os
-import glob
-from natsort import natsorted
+
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from natsort import natsorted
 
 
 def get_file_list(folder_path: str, p_postfix: list = None, sub_dir: bool = True) -> list:
@@ -138,11 +139,23 @@ def cal_text_score(texts, gt_texts, training_masks, running_metric_text, thred=0
 def order_points_clockwise(pts):
     rect = np.zeros((4, 2), dtype="float32")
     s = pts.sum(axis=1)
-    rect[0] = pts[np.argmin(s)]
-    rect[2] = pts[np.argmax(s)]
-    diff = np.diff(pts, axis=1)
-    rect[1] = pts[np.argmin(diff)]
-    rect[3] = pts[np.argmax(diff)]
+    index_min_sum = np.argmin(s)
+    index_max_sum = np.argmax(s)
+    rect[0] = pts[index_min_sum]
+    rect[2] = pts[index_max_sum]
+
+    diff = np.diff(pts, axis=1).reshape(4)
+    lst_index_min_diff = diff.argsort()[:2]
+    lst_index_max_diff = diff.argsort()[-2:]
+    if lst_index_min_diff[0] == index_min_sum:
+        rect[1] = pts[lst_index_min_diff[1]]
+    else:
+        rect[1] = pts[lst_index_min_diff[0]]
+    if lst_index_max_diff[-1] == index_max_sum:
+        rect[3] = pts[lst_index_max_diff[-2]]
+    else:
+        rect[3] = pts[lst_index_max_diff[-1]]
+
     return rect
 
 

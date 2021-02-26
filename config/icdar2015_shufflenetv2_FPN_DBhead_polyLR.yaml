@@ -3,7 +3,7 @@ base: ['config/icdar2015.yaml']
 arch:
   type: Model
   backbone:
-    type: resnet18
+    type: shufflenet_v2_x1_0
     pretrained: true
   neck:
     type: FPN
@@ -55,9 +55,9 @@ dataset:
           - ./datasets/train.txt
         img_mode: RGB
     loader:
-      batch_size: 2
+      batch_size: 1
       shuffle: true
-      pin_memory: true
+      pin_memory: false
       num_workers: 0
       collate_fn: ''
   validate:
@@ -72,7 +72,7 @@ dataset:
               resize_text_polys: false
         img_mode: RGB
     loader:
-      batch_size: 2
+      batch_size: 1
       shuffle: true
       pin_memory: false
       num_workers: 0
