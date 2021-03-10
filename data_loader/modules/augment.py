@@ -23,7 +23,7 @@ class RandomNoise:
         """
         if random.random() > self.random_rate:
             return data
-        data['img'] = (random_noise(data['img'], mode='gaussian', clip=True) * 255).astype(im.dtype)
+        data['img'] = (random_noise(data['img'], mode='gaussian', clip=True) * 255).astype(data['img'].dtype)
         return data
 
 
@@ -219,29 +219,18 @@ class ResizeShortSize:
         text_polys = data['text_polys']
 
         h, w, c = im.shape
-        # short_edge = min(h, w)
-        # if short_edge < self.short_size:
-        #     # 保证短边 >= short_size
-        #     scale = self.short_size / short_edge
-        #     im = cv2.resize(im, dsize=None, fx=scale, fy=scale)
-        #     scale = (scale, scale)
-        #     # im, scale = resize_image(im, self.short_size)
-        #     if self.resize_text_polys:
-        #         # text_polys *= scale
-        #         text_polys[:, 0] *= scale[0]
-        #         text_polys[:, 1] *= scale[1]
-        scale_w = self.short_size / w
-        scale_h = self.short_size / h
-        scale = min(scale_w, scale_h)
-        h = int(h * scale)
-        w = int(w * scale)
-        padimg = np.zeros((self.short_size, self.short_size, c), im.dtype)
-        padimg[:h, :w] = cv2.resize(im, (w, h))
-        if self.resize_text_polys:
-            # text_polys *= scale
-            text_polys[:, 0] *= scale[0]
-            text_polys[:, 1] *= scale[1]
-        data['img'] = padimg
+        short_edge = min(h, w)
+        if short_edge < self.short_size:
+            # 保证短边 >= short_size
+            scale = self.short_size / short_edge
+            im = cv2.resize(im, dsize=None, fx=scale, fy=scale)
+            scale = (scale, scale)
+            # im, scale = resize_image(im, self.short_size)
+            if self.resize_text_polys:
+                # text_polys *= scale
+                text_polys[:, 0] *= scale[0]
+                text_polys[:, 1] *= scale[1]
+        data['img'] = im
         data['text_polys'] = text_polys
         return data
 

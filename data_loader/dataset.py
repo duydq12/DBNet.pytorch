@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2019/8/23 21:54
 # @Author  : zhoujun
-import pathlib
 import os
+import pathlib
+
 import cv2
 import numpy as np
 import scipy.io as sio
 from tqdm.auto import tqdm
 
 from base import BaseDataSet
-from utils import order_points_clockwise, get_datalist, load,expand_polygon
+from utils import get_datalist, load, expand_polygon
 
 
 class ICDAR2015Dataset(BaseDataSet):
-    def __init__(self, data_path: str, img_mode, pre_processes, filter_keys, ignore_tags, transform=None, **kwargs):
+    def __init__(self, data_path: str, img_mode, pre_processes, filter_keys, ignore_tags,
+                 transform=None, **kwargs):
         super().__init__(data_path, img_mode, pre_processes, filter_keys, ignore_tags, transform)
 
     def load_data(self, data_path: str) -> list:
@@ -21,6 +23,14 @@ class ICDAR2015Dataset(BaseDataSet):
         t_data_list = []
         for img_path, label_path in data_list:
             data = self._get_annotation(label_path)
+            # img = cv2.imread(img_path)
+            # pts = data['text_polys'][0].astype(int)
+            # cv2.line(img, tuple(pts[0]), tuple(pts[1]), (0, 255, 0), 2)
+            # cv2.line(img, tuple(pts[1]), tuple(pts[2]), (0, 255, 0), 2)
+            # cv2.line(img, tuple(pts[2]), tuple(pts[3]), (0, 255, 0), 2)
+            # cv2.line(img, tuple(pts[3]), tuple(pts[0]), (0, 255, 0), 2)
+            # cv2.imshow("test", img)
+            # cv2.waitKey(0)
             if len(data['text_polys']) > 0:
                 item = {'img_path': img_path, 'img_name': pathlib.Path(img_path).stem}
                 item.update(data)
@@ -36,15 +46,12 @@ class ICDAR2015Dataset(BaseDataSet):
         with open(label_path, encoding='utf-8', mode='r') as f:
             for line in f.readlines():
                 params = line.strip().strip('\ufeff').strip('\xef\xbb\xbf').split(',')
-                try:
-                    box = order_points_clockwise(np.array(list(map(float, params[:8]))).reshape(-1, 2))
-                    if cv2.contourArea(box) > 0:
-                        boxes.append(box)
-                        label = params[8]
-                        texts.append(label)
-                        ignores.append(label in self.ignore_tags)
-                except:
-                    print('load label failed on {}'.format(label_path))
+                pts = params[0:8]
+                box = np.array([float(value) for value in pts]).reshape((4, 2))
+                boxes.append(box)
+                label = params[8]
+                texts.append(label)
+                ignores.append(label in self.ignore_tags)
         data = {
             'text_polys': np.array(boxes),
             'texts': texts,
@@ -54,7 +61,8 @@ class ICDAR2015Dataset(BaseDataSet):
 
 
 class DetDataset(BaseDataSet):
-    def __init__(self, data_path: str, img_mode, pre_processes, filter_keys, ignore_tags, transform=None, **kwargs):
+    def __init__(self, data_path: str, img_mode, pre_processes, filter_keys, ignore_tags,
+                 transform=None, **kwargs):
         self.load_char_annotation = kwargs['load_char_annotation']
         self.expand_one_char = kwargs['expand_one_char']
         super().__init__(data_path, img_mode, pre_processes, filter_keys, ignore_tags, transform)
@@ -85,19 +93,22 @@ class DetDataset(BaseDataSet):
                     language_list.append(annotation['language'])
                     if self.load_char_annotation:
                         for char_annotation in annotation['chars']:
-                            if len(char_annotation['polygon']) == 0 or len(char_annotation['char']) == 0:
+                            if len(char_annotation['polygon']) == 0 or len(
+                                    char_annotation['char']) == 0:
                                 continue
                             polygons.append(char_annotation['polygon'])
                             texts.append(char_annotation['char'])
                             illegibility_list.append(char_annotation['illegibility'])
                             language_list.append(char_annotation['language'])
-                data_list.append({'img_path': img_path, 'img_name': gt['img_name'], 'text_polys': np.array(polygons),
+                data_list.append({'img_path': img_path, 'img_name': gt['img_name'],
+                                  'text_polys': np.array(polygons),
                                   'texts': texts, 'ignore_tags': illegibility_list})
         return data_list
 
 
 class SynthTextDataset(BaseDataSet):
-    def __init__(self, data_path: str, img_mode, pre_processes, filter_keys, transform=None, **kwargs):
+    def __init__(self, data_path: str, img_mode, pre_processes, filter_keys, transform=None,
+                 **kwargs):
         self.transform = transform
         self.dataRoot = pathlib.Path(data_path)
         if not self.dataRoot.exists():
@@ -119,7 +130,8 @@ class SynthTextDataset(BaseDataSet):
         t_data_list = []
         for imageName, wordBBoxes, texts in zip(self.imageNames, self.wordBBoxes, self.transcripts):
             item = {}
-            wordBBoxes = np.expand_dims(wordBBoxes, axis=2) if (wordBBoxes.ndim == 2) else wordBBoxes
+            wordBBoxes = np.expand_dims(wordBBoxes, axis=2) if (
+                        wordBBoxes.ndim == 2) else wordBBoxes
             _, _, numOfWords = wordBBoxes.shape
             text_polys = wordBBoxes.reshape([8, numOfWords], order='F').T  # num_words * 8
             text_polys = text_polys.reshape(numOfWords, 4, 2)  # num_of_words * 4 * 2
@@ -136,19 +148,19 @@ class SynthTextDataset(BaseDataSet):
 
 
 if __name__ == '__main__':
-    import torch
     import anyconfig
     from torch.utils.data import DataLoader
     from torchvision import transforms
 
-    from utils import parse_config, show_img, plt, draw_bbox
+    from utils import parse_config
 
     config = anyconfig.load('config/icdar2015_resnet18_FPN_DBhead_polyLR.yaml')
     config = parse_config(config)
     dataset_args = config['dataset']['train']['dataset']['args']
     # dataset_args.pop('data_path')
     # data_list = [(r'E:/zj/dataset/icdar2015/train/img/img_15.jpg', 'E:/zj/dataset/icdar2015/train/gt/gt_img_15.txt')]
-    train_data = ICDAR2015Dataset(data_path=dataset_args.pop('data_path'), transform=transforms.ToTensor(),
+    train_data = ICDAR2015Dataset(data_path=dataset_args.pop('data_path'),
+                                  transform=transforms.ToTensor(),
                                   **dataset_args)
     train_loader = DataLoader(dataset=train_data, batch_size=1, shuffle=True, num_workers=0)
     for i, data in enumerate(tqdm(train_loader)):
