@@ -78,24 +78,24 @@ bash multi_gpu_train.sh
 ```
 ## Test
 
-[eval.py](tools/eval.py) is used to test model on test dataset
+[eval.py](src/tools/eval.py) is used to test model on test dataset
 
-1. config `model_path` in [eval.sh](eval.sh)
+1. config `model_path` in [eval.sh](scripts/eval.sh)
 2. use following script to test
 ```bash
 bash eval.sh
 ```
 
 ## Predict 
-[predict.py](tools/predict.py) Can be used to inference on all images in a folder
-1. config `model_path`,`input_folder`,`output_folder` in [predict.sh](predict.sh)
+[predict.py](src/tools/predict.py) Can be used to inference on all images in a folder
+1. config `model_path`,`input_folder`,`output_folder` in [predict.sh](scripts/predict.sh)
 2. use following script to predict
 ```
 bash predict.sh
 ```
 You can change the `model_path` in the `predict.sh` file to your model location. 
 
-tips: if result is not good, you can change `thre` in [predict.sh](predict.sh) 
+tips: if result is not good, you can change `thre` in [predict.sh](scripts/predict.sh) 
     
 The project is still under development.
 

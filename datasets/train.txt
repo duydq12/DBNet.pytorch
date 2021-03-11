@@ -1,3 +1,0 @@
-/Users/duydq/_project/alpr/_research/DBNet.pytorch/datasets/train/img/1613802740.1383047.jpg	/Users/duydq/_project/alpr/_research/DBNet.pytorch/datasets/train/gt/1613802740.1383047_float.txt
-/Users/duydq/_project/alpr/_research/DBNet.pytorch/datasets/train/img/1613967012.3083625.jpg	/Users/duydq/_project/alpr/_research/DBNet.pytorch/datasets/train/gt/1613967012.3083625_float.txt
-/Users/duydq/_project/alpr/_research/DBNet.pytorch/datasets/train/img/1613825173.8492694.jpg	/Users/duydq/_project/alpr/_research/DBNet.pytorch/datasets/train/gt/1613825173.8492694_float.txt
