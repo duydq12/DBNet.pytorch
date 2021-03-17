@@ -5,8 +5,8 @@ import sys
 __dir__ = pathlib.Path(os.path.abspath(__file__))
 sys.path.append(str(__dir__))
 sys.path.append(str(__dir__.parent.parent))
+sys.path.append(str(__dir__.parent.parent.parent))
 
-import time
 import cv2
 import torch
 
@@ -61,7 +61,7 @@ class Pytorch_model:
                 self.transform.append(t)
         self.transform = get_transforms(self.transform)
 
-    def predict(self, img_path: str, is_output_polygon=False, short_size: int = 1024):
+    def predict(self, img_path: str, is_output_polygon=False, short_size: int = 640):
         '''
         对传入的图像进行预测，支持图像地址,opecv 读取图片，偏慢
         :param img_path: 图像地址
@@ -115,39 +115,33 @@ def init_args():
     parser.add_argument('--model_path', default=r'model_best.pth', type=str)
     parser.add_argument('--input_folder', default='./test/input', type=str,
                         help='img path for predict')
-    parser.add_argument('--output_folder', default='./test/output', type=str,
+    parser.add_argument('--output_folder', default='', type=str,
                         help='img path for output')
     parser.add_argument('--thre', default=0.3, type=float, help='the thresh of post_processing')
     parser.add_argument('--polygon', action='store_true', help='output polygon or box')
-    parser.add_argument('--show', action='store_true', help='show result')
-    parser.add_argument('--save_resut', action='store_true', help='save box and score to txt file')
+    parser.add_argument('--show', default=True, action='store_true', help='show result')
+    parser.add_argument('--save_resut', default=False, action='store_true',
+                        help='save box and score to txt file')
     args = parser.parse_args()
     return args
 
 
 if __name__ == '__main__':
-    # --model_path model_best.pth --input_folder ./ input --output_folder ./output --thre 0.7 --polygon --show --save_result
+    # --model_path model_best.pth --input_folder ./input --thre 0.7
     import pathlib
     from tqdm import tqdm
-    import matplotlib.pyplot as plt
-    from src.utils import show_img, draw_bbox, save_result, get_file_list
+    from src.utils import draw_bbox, get_file_list
+    import time
 
     args = init_args()
-    model = Pytorch_model(args.model_path, post_p_thre=args.thre, gpu_id=0)
+    model = Pytorch_model(args.model_path, post_p_thre=args.thre, gpu_id=None)
     img_folder = pathlib.Path(args.input_folder)
     for img_path in tqdm(get_file_list(args.input_folder, p_postfix=['.jpg'])):
         preds, boxes_list, score_list, t = model.predict(img_path, is_output_polygon=args.polygon)
+        print(t)
         img = draw_bbox(cv2.imread(img_path)[:, :, ::-1], boxes_list)
+
         if args.show:
-            show_img(preds)
-            show_img(img, title=os.path.basename(img_path))
-            plt.show()
-        # 保存结果到路径
-        os.makedirs(args.output_folder, exist_ok=True)
-        img_path = pathlib.Path(img_path)
-        output_path = os.path.join(args.output_folder, img_path.stem + '_result.jpg')
-        pred_path = os.path.join(args.output_folder, img_path.stem + '_pred.jpg')
-        cv2.imwrite(output_path, img[:, :, ::-1])
-        cv2.imwrite(pred_path, preds * 255)
-        save_result(output_path.replace('_result.jpg', '.txt'), boxes_list, score_list,
-                    args.polygon)
+            cv2.imshow("bitmap", preds)
+            cv2.imshow(os.path.basename(img_path), cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+            cv2.waitKey(0)
