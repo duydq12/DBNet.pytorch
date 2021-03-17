@@ -75,6 +75,7 @@ class BaseTrainer:
                                               self.optimizer)
 
         self.model.to(self.device)
+        self.criterion.to(self.device)
 
         if self.tensorboard_enable and config['local_rank'] == 0:
             from torch.utils.tensorboard import SummaryWriter

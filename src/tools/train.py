@@ -45,7 +45,7 @@ def main(config):
     else:
         validate_loader = None
 
-    criterion = build_loss(config['loss']).cuda()
+    criterion = build_loss(config['loss'])
 
     config['arch']['backbone']['in_channels'] = 3 if config['dataset']['train']['dataset']['args'][
                                                          'img_mode'] != 'GRAY' else 1
