@@ -2,8 +2,9 @@
 # @Time    : 2018/6/11 15:54
 # @Author  : zhoujun
 import os
-import sys
 import pathlib
+import sys
+
 __dir__ = pathlib.Path(os.path.abspath(__file__))
 sys.path.append(str(__dir__))
 sys.path.append(str(__dir__.parent.parent))
@@ -47,7 +48,8 @@ class EVAL():
         raw_metrics = []
         total_frame = 0.0
         total_time = 0.0
-        for i, batch in tqdm(enumerate(self.validate_loader), total=len(self.validate_loader), desc='test model'):
+        for i, batch in tqdm(enumerate(self.validate_loader), total=len(self.validate_loader),
+                             desc='test model'):
             with torch.no_grad():
                 # 数据进行转换和丢到gpu
                 for key, value in batch.items():
@@ -56,7 +58,8 @@ class EVAL():
                             batch[key] = value.to(self.device)
                 start = time.time()
                 preds = self.model(batch['img'])
-                boxes, scores = self.post_process(batch, preds,is_output_polygon=self.metric_cls.is_output_polygon)
+                boxes, scores = self.post_process(batch, preds,
+                                                  is_output_polygon=self.metric_cls.is_output_polygon)
                 total_frame += batch['img'].size()[0]
                 total_time += time.time() - start
                 raw_metric = self.metric_cls.validate_measure(batch, (boxes, scores))
@@ -68,7 +71,8 @@ class EVAL():
 
 def init_args():
     parser = argparse.ArgumentParser(description='DBNet.pytorch')
-    parser.add_argument('--model_path', required=False,default='output/DBNet_resnet18_FPN_DBHead/checkpoint/1.pth', type=str)
+    parser.add_argument('--model_path', required=False,
+                        default='output/DBNet_resnet18_FPN_DBHead/checkpoint/1.pth', type=str)
     args = parser.parse_args()
     return args
 
