@@ -20,8 +20,7 @@ class HardSigmoid(nn.Module):
 
     def forward(self, x):
         x = (self.slope * x) + self.offset
-        x = F.threshold(-x, -1, -1)
-        x = F.threshold(-x, 0, 0)
+        x = F.hardtanh(x, 0, 1)
         return x
 
 
